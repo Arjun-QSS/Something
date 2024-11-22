@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Done
+model Owner {
+  id   String @id @default(uuid())
+  name String
+
+  user User?
+}
+
+// Done
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  address   String
+  img       String?
+  bloodType String
+  gender    Gender
+  dob       DateTime
+
+  user User?
+
+  joined_at  DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+// Done
+model Student {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  address   String
+  img       String?
+  bloodType String
+  gender    Gender
+  dob       DateTime
+
+  user User?
+
+  attendances Attendance[]
+  assignments Assignment[]
+  results     Result[]
+  complaints  Complaint[]
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  joined_at  DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+// Done
+model Teacher {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  address   String
+  img       String?
+  bloodType String
+  gender    Gender
+  dob       DateTime
+
+  subjects   Subject[]
+  lessons    Lesson[]
+  complaints Complaint[]
+
+  user    User?
+  classes Class[]
+
+  joined_at  DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+// Done
+model Staff {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  address   String
+  img       String?
+  bloodType String
+  gender    Gender
+  dob       DateTime
+
+  user User?
+
+  joined_at  DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+// Done
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  role     Role
+  password String
+
+  teacherId String?  @unique
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+
+  studentId String?  @unique
+  student   Student? @relation(fields: [studentId], references: [id])
+
+  staffId String? @unique
+  staff   Staff?  @relation(fields: [staffId], references: [id])
+
+  adminId String? @unique
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+
+  ownerId String? @unique
+  owner   Owner?  @relation(fields: [ownerId], references: [id])
+
+  achievements Acheivement[]
+}
+
+// Done
+model Grade {
+  id    String @id @default(uuid())
+  level Int    @unique
+
+  classes Class[]
+}
+
+// Done
+model Class {
+  id   String @id @default(uuid())
+  name String @unique
+
+  students      Student[]
+  subjects      Subject[]
+  lessons       Lesson[]
+  assignments   Assignment[]
+  exams         Exam[]
+  announcements Announcement[]
+  events        Event[]
+  posts         Post[]
+
+  gradeId String
+  grade   Grade  @relation(fields: [gradeId], references: [id])
+
+  timeTableId String    @unique
+  timeTable   TimeTable @relation(fields: [timeTableId], references: [id])
+
+  supervisorId String  @unique
+  supervisor   Teacher @relation(fields: [supervisorId], references: [id])
+}
+
+// Done
+model Subject {
+  id   String @id @default(uuid())
+  name String @unique
+
+  teachers    Teacher[]
+  classes     Class[]
+  lessons     Lesson[]
+  assignments Assignment[]
+  exams       Exam[]
+}
+
+// Done
+model Lesson {
+  id String @id @default(uuid())
+
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+
+  attendances Attendance[]
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+}
+
+// Done
+model Attendance {
+  id      String  @id @default(uuid())
+  present Boolean @default(false)
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+}
+
+model TimeTable {
+  id String @id @default(uuid())
+
+  class Class?
+}
+
+// Done
+model Assignment {
+  id          String   @id @default(uuid())
+  assign_date DateTime
+  due_date    DateTime
+  title       String
+  description String
+
+  submissions Student[]
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  created_at DateTime @default(now())
+}
+
+model Exam {
+  id        String   @id @default(uuid())
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+
+  results Result[]
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+}
+
+model Result {
+  id    String @id @default(uuid())
+  marks Int
+  max   Int
+
+  examId String
+  exam   Exam   @relation(fields: [examId], references: [id])
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+}
+
+// Done
+model Announcement {
+  id          String           @id @default(uuid())
+  priority    Int
+  type        AnnouncementType
+  title       String
+  description String
+  date        String
+
+  classes Class[]
+}
+
+// Done
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  startTime   DateTime
+  endTime     DateTime
+
+  classes Class[]
+}
+
+// Done
+model Complaint {
+  id String @id @default(uuid())
+
+  subject     String
+  description String
+
+  teacherId String?  @unique
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+
+  studentId String?  @unique
+  student   Student? @relation(fields: [studentId], references: [id])
+
+  created_at DateTime @default(now())
+}
+
+// Done
+model Post {
+  id          String   @id @default(uuid())
+  img         String
+  title       String
+  description String
+  tags        String[]
+
+  classes Class[]
+}
+
+model Acheivement {
+  id          String @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  eligibleFor Role[]
+
+  users User[]
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+  STAFF
+  OWNER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AnnouncementType {
+  ALERT
+  GENERAL
+}
